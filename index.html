@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reading: The Not So Distant Past</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Battambang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f3f4f6; 
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .khmer { font-family: 'Battambang', cursive; }
+        
+        /* Fixed-Height Mobile Layout, Aspect-Ratio Desktop */
+        .presentation-slide { 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            background: white;
+            min-height: 100vh; /* Full height on mobile */
+        }
+
+        @media (min-width: 1024px) {
+            .presentation-slide {
+                max-width: 1100px;
+                min-height: auto;
+                aspect-ratio: 16 / 9;
+                margin: 2rem auto;
+                border-radius: 1rem;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+            }
+            body { padding: 2rem; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        }
+
+        .scrollable-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+            padding: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .scrollable-content { padding: 2rem; }
+        }
+
+        /* Flashcard Styles */
+        .perspective { perspective: 1000px; }
+        .flip-card-inner { transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; height: 100%; width: 100%; position: relative; }
+        .flipped { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { 
+            backface-visibility: hidden; 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: 1rem; padding: 1.5rem; text-align: center; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .flip-card-back { transform: rotateY(180deg); }
+
+        /* Custom scrollbar for better look */
+        .scrollable-content::-webkit-scrollbar { width: 6px; }
+        .scrollable-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-slide">
+        <header class="bg-slate-800 text-white p-4 md:p-6 text-center flex-shrink-0">
+            <h1 class="text-lg md:text-3xl font-bold">Reading: The Not So Distant Past</h1>
+            <p class="text-slate-400 font-medium text-[10px] md:text-sm uppercase tracking-wider">GIA School • Live Results Enabled</p>
+        </header>
+
+        <nav class="flex border-b bg-white sticky top-0 z-20 flex-shrink-0">
+            <button onclick="switchTab('vocabulary')" id="tab-vocabulary" class="flex-1 py-3 text-sm md:text-base font-bold text-blue-600 border-b-4 border-blue-600 transition-all">VOCAB</button>
+            <button onclick="switchTab('flashcards')" id="tab-flashcards" class="flex-1 py-3 text-sm md:text-base font-bold text-gray-400 hover:text-blue-600 border-b-4 border-transparent transition-all">CARDS</button>
+            <button onclick="switchTab('practice')" id="tab-practice" class="flex-1 py-3 text-sm md:text-base font-bold text-gray-400 hover:text-blue-600 border-b-4 border-transparent transition-all">QUIZ</button>
+        </nav>
+
+        <main class="scrollable-content" id="content-area">
+            <!-- Vocabulary View -->
+            <div id="view-vocabulary" class="block space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-2 mb-2 font-bold text-gray-500 hidden md:grid">
+                    <div>Word (Part of Speech)</div>
+                    <div>IPA</div>
+                    <div>Khmer</div>
+                </div>
+                <div id="vocab-list" class="space-y-2 md:space-y-3"></div>
+            </div>
+
+            <!-- Flashcards View -->
+            <div id="view-flashcards" class="hidden h-full flex flex-col items-center justify-center min-h-[400px]">
+                <div class="perspective w-full max-w-[320px] md:max-w-md h-64 md:h-80 mb-8">
+                    <div id="card-inner" class="flip-card-inner" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-front bg-blue-50 border-2 border-blue-200">
+                            <div>
+                                <h2 id="card-front-text" class="text-3xl md:text-5xl font-bold text-slate-700 mb-2">Word</h2>
+                                <p id="card-front-pos" class="text-blue-500 font-medium italic"></p>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-white border-2 border-red-200">
+                            <div>
+                                <p id="card-back-ipa" class="text-slate-400 text-lg md:text-xl font-mono mb-6">/ipa/</p>
+                                <h2 id="card-back-khmer" class="text-3xl md:text-5xl font-bold text-red-600 khmer">ការបកប្រែ</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="prevCard()" class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-full active:bg-slate-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button onclick="shuffleCards()" class="px-6 py-2 bg-blue-600 text-white rounded-full font-bold shadow-md active:scale-95 transition-transform">SHUFFLE</button>
+                    <button onclick="nextCard()" class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-full active:bg-slate-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+                <p id="card-count" class="mt-6 text-slate-400 font-medium text-sm">Card 1 / 24</p>
+            </div>
+
+            <!-- Quiz View -->
+            <div id="view-practice" class="hidden pb-10">
+                <div class="bg-blue-600 p-5 rounded-xl mb-6 text-white shadow-lg">
+                    <p class="text-xs font-bold uppercase opacity-80 mb-3">Student Information</p>
+                    <div class="flex flex-col gap-3">
+                        <input type="text" id="student-name" placeholder="Type your full name here..." class="w-full px-4 py-3 rounded-lg text-slate-800 focus:ring-4 focus:ring-blue-300 outline-none font-bold">
+                        <p class="text-[10px] opacity-90 italic">Your score will be sent to the teacher automatically after you check answers.</p>
+                    </div>
+                </div>
+
+                <div id="quiz-container" class="space-y-4 md:space-y-6"></div>
+
+                <div class="mt-8 flex flex-col gap-3">
+                    <button id="check-btn" onclick="checkAnswers()" class="w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-black text-lg shadow-xl active:scale-[0.98] transition-all">CHECK ANSWERS</button>
+                    <button id="submit-btn" onclick="submitToTeacher()" class="hidden w-full py-3 bg-slate-800 text-white rounded-xl font-bold opacity-80">Backup: Submit to Google Form</button>
+                </div>
+                <div id="status-msg" class="hidden mt-4 p-4 rounded-xl text-center font-bold animate-bounce"></div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'reading-past-01';
+
+        const vocabularyData = [
+            { word: "Enemy", pos: "n", ipa: "/ˈɛnəmi/", khmer: "សត្រូវ" },
+            { word: "Capture", pos: "v", ipa: "/ˈkæptʃər/", khmer: "ចាប់យក" },
+            { word: "Virus", pos: "n", ipa: "/ˈvaɪrəs/", khmer: "វីរុស" },
+            { word: "Refugee", pos: "n", ipa: "/ˌrɛfjuˈdʒiː/", khmer: "ជនភៀសខ្លួន" },
+            { word: "Announce", pos: "v", ipa: "/əˈnaʊns/", khmer: "ប្រកាស" },
+            { word: "Execute", pos: "v", ipa: "/ˈɛksɪkjuːt/", khmer: "ប្រហារជីវិត" },
+            { word: "Protest", pos: "v/n", ipa: "/ˈproʊtɛst/", khmer: "តវ៉ា" },
+            { word: "Protestor", pos: "n", ipa: "/prəˈtɛstər/", khmer: "អ្នកតវ៉ា" },
+            { word: "Invade", pos: "v", ipa: "/ɪnˈveɪd/", khmer: "ឈ្លានពាន" },
+            { word: "Pay tax", pos: "v phr.", ipa: "/peɪ tæks/", khmer: "បង់ពន្ធ" },
+            { word: "Surprisingly", pos: "adv", ipa: "/sərˈpraɪzɪŋli/", khmer: "គួរឱ្យភ្ញាក់ផ្អើល" },
+            { word: "Certainly", pos: "adv", ipa: "/ˈsɜːrtnli/", khmer: "ប្រាកដណាស់" },
+            { word: "Rule", pos: "v", ipa: "/ruːl/", khmer: "គ្រប់គ្រង/ត្រួតត្រា" },
+            { word: "Incredibly", pos: "adv", ipa: "/ɪnˈkrɛdəbli/", khmer: "គួរឱ្យជឿជាក់" },
+            { word: "Central heating", pos: "n", ipa: "/ˈsɛntrəl ˈhiːtɪŋ/", khmer: "ប្រព័ន្ធកម្ដៅកណ្តាល" },
+            { word: "Acquaduct", pos: "n", ipa: "/ˈækwədʌkt/", khmer: "បំពង់នាំទឹក" },
+            { word: "Flushing toilet", pos: "n", ipa: "/ˈflʌʃɪŋ ˈtɔɪlət/", khmer: "បង្គន់ចុចទឹក" },
+            { word: "Sewage", pos: "n", ipa: "/ˈsuːɪdʒ/", khmer: "ទឹកស្អុយ" },
+            { word: "On the move", pos: "idm", ipa: "/ɒn ðə muːv/", khmer: "កំពុងធ្វើដំណើរ" },
+            { word: "Stall", pos: "n", ipa: "/stɔːl/", khmer: "តូបលក់ដូរ" },
+            { word: "Mince", pos: "v/n", ipa: "/mɪns/", khmer: "សាច់ចិញ្ច្រាំ" },
+            { word: "Patties", pos: "n", ipa: "/ˈpætiz/", khmer: "នំបុ័ងសាច់" },
+            { word: "Leap year", pos: "n", ipa: "/liːp jɪər/", khmer: "ឆ្នាំបង្គ្រប់" },
+            { word: "A living reminder", pos: "n phr.", ipa: "/ə ˈlɪvɪŋ rɪˈmaɪndər/", khmer: "ការរំលឹកដ៏រស់រវើក" }
+        ];
+
+        let currentCardIndex = 0;
+        let shuffledCards = [...vocabularyData];
+        let globalScore = "";
+        let currentUser = null;
+
+        const quizQuestions = [
+            { q: "The soldiers managed to ____ the city after a long battle.", a: "capture" },
+            { q: "A ____ is a person who has been forced to leave their country to escape war.", a: "refugee" },
+            { q: "The government will ____ the new law on the radio tomorrow.", a: "announce" },
+            { q: "Ancient Romans used an ____ to carry water from the mountains to the city.", a: "acquaduct" },
+            { q: "Many people went to the street to ____ against the high prices.", a: "protest" },
+            { q: "The computer was infected with a dangerous ____.", a: "virus" },
+            { q: "In ancient times, kings used to ____ their lands with total power.", a: "rule" },
+            { q: "It's a ____, which means February has 29 days this year.", a: "leap year" },
+            { q: "We bought some beef ____ to make burgers for the party.", a: "mince" },
+            { q: "The city's ____ system needs to be fixed to avoid bad smells.", a: "sewage" },
+            { q: "The old castle is ____ of the history of this town.", a: "a living reminder" },
+            { q: "She was ____ fast, and I couldn't keep up with her.", a: "on the move" },
+            { q: "People in this country must ____ to support public services.", a: "pay tax" },
+            { q: "The ____ was arrested for throwing a stone at the building.", a: "protestor" },
+            { q: "The story was ____ exciting, I couldn't stop reading it.", a: "incredibly" },
+            { q: "____, he finished the whole marathon even though he was sick.", a: "surprisingly" },
+            { q: "They decided to ____ the prisoner early in the morning.", a: "execute" },
+            { q: "The army plans to ____ the neighboring territory at dawn.", a: "invade" },
+            { q: "You ____ need to bring your ID if you want to enter.", a: "certainly" },
+            { q: "Modern houses usually have ____ to keep warm in winter.", a: "central heating" }
+        ];
+
+        async function init() {
+            renderVocabulary();
+            renderQuiz();
+            updateCard();
+            try {
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, (user) => { currentUser = user; });
+            } catch(e) { console.error("Firebase Auth failed"); }
+        }
+
+        window.switchTab = (tab) => {
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-blue-600');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('text-blue-600', 'border-blue-600');
+            ['vocabulary', 'flashcards', 'practice'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+        };
+
+        function renderVocabulary() {
+            const container = document.getElementById('vocab-list');
+            container.innerHTML = vocabularyData.map(item => `
+                <div class="p-4 bg-white border rounded-xl shadow-sm flex flex-col md:grid md:grid-cols-3 gap-1 md:gap-4 hover:border-blue-200 transition-colors">
+                    <div class="text-slate-800 font-bold text-lg md:text-base">${item.word} <span class="text-[10px] font-normal italic text-slate-400 uppercase">(${item.pos})</span></div>
+                    <div class="text-blue-600 font-mono text-sm">${item.ipa}</div>
+                    <div class="text-red-600 font-bold khmer text-xl md:text-lg">${item.khmer}</div>
+                </div>
+            `).join('');
+        }
+
+        window.shuffleCards = () => {
+            shuffledCards = [...vocabularyData].sort(() => Math.random() - 0.5);
+            currentCardIndex = 0;
+            document.getElementById('card-inner').classList.remove('flipped');
+            setTimeout(updateCard, 100);
+        };
+
+        function updateCard() {
+            const item = shuffledCards[currentCardIndex];
+            document.getElementById('card-front-text').innerText = item.word;
+            document.getElementById('card-front-pos').innerText = `(${item.pos})`;
+            document.getElementById('card-back-ipa').innerText = item.ipa;
+            document.getElementById('card-back-khmer').innerText = item.khmer;
+            document.getElementById('card-count').innerText = `Card ${currentCardIndex + 1} / ${shuffledCards.length}`;
+        }
+
+        window.nextCard = () => { document.getElementById('card-inner').classList.remove('flipped'); setTimeout(() => { currentCardIndex = (currentCardIndex + 1) % shuffledCards.length; updateCard(); }, 150); };
+        window.prevCard = () => { document.getElementById('card-inner').classList.remove('flipped'); setTimeout(() => { currentCardIndex = (currentCardIndex - 1 + shuffledCards.length) % shuffledCards.length; updateCard(); }, 150); };
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = quizQuestions.map((item, index) => `
+                <div class="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <p class="text-slate-700 font-medium leading-relaxed mb-4">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-[10px] font-bold mr-2">${index + 1}</span>
+                        ${item.q.replace('____', `
+                            <input type="text" id="q-${index}" autocomplete="off" placeholder="???" class="mx-1 px-3 py-1 border-b-2 border-slate-200 focus:border-blue-500 outline-none w-32 md:w-44 text-blue-600 font-bold bg-slate-50 rounded-t-md transition-all">
+                        `)}
+                    </p>
+                    <div id="feedback-${index}" class="hidden mt-2 text-xs font-bold px-3 py-1 rounded-lg"></div>
+                </div>
+            `).join('');
+        }
+
+        window.checkAnswers = async () => {
+            const nameInput = document.getElementById('student-name');
+            const name = nameInput.value.trim();
+            if (!name) { 
+                nameInput.focus();
+                showStatus("⚠️ PLEASE ENTER YOUR NAME!", "bg-red-500 text-white"); 
+                return; 
+            }
+
+            let scoreCount = 0;
+            quizQuestions.forEach((item, index) => {
+                const input = document.getElementById(`q-${index}`);
+                const feedback = document.getElementById(`feedback-${index}`);
+                const isCorrect = input.value.trim().toLowerCase() === item.a.toLowerCase();
+                
+                if (isCorrect) {
+                    scoreCount++;
+                    feedback.innerText = "✓ CORRECT";
+                    feedback.className = "mt-2 text-[10px] font-bold px-3 py-1 rounded-lg bg-green-100 text-green-700 inline-block";
+                    input.className = input.className.replace('border-slate-200', 'border-green-500');
+                } else {
+                    feedback.innerText = `✗ WRONG: ${item.a}`;
+                    feedback.className = "mt-2 text-[10px] font-bold px-3 py-1 rounded-lg bg-red-100 text-red-700 inline-block";
+                    input.className = input.className.replace('border-slate-200', 'border-red-500');
+                }
+                feedback.classList.remove('hidden');
+            });
+
+            globalScore = `${scoreCount}/${quizQuestions.length}`;
+            showStatus("📤 SENDING SCORE...", "bg-blue-500 text-white");
+
+            if (currentUser) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'scores'), {
+                        studentName: name,
+                        score: globalScore,
+                        numericScore: scoreCount,
+                        timestamp: serverTimestamp()
+                    });
+                    showStatus(`✅ SCORE SENT: ${globalScore}`, "bg-green-600 text-white");
+                } catch (e) {
+                    showStatus("❌ OFFLINE? USE BACKUP BUTTON", "bg-orange-500 text-white");
+                }
+            }
+            
+            document.getElementById('submit-btn').classList.remove('hidden');
+        };
+
+        function showStatus(msg, classes) {
+            const status = document.getElementById('status-msg');
+            status.innerText = msg;
+            status.className = `mt-4 p-4 rounded-xl text-center font-black text-sm shadow-lg ${classes}`;
+            status.classList.remove('hidden');
+        }
+
+        window.submitToTeacher = () => {
+            const name = document.getElementById('student-name').value.trim();
+            const GOOGLE_FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc23RA7bY378eOxgh3kD1QRc5ZmpgkxEqC3FqBOvabvMMe2sQ/viewform";
+            const finalUrl = `${GOOGLE_FORM_BASE_URL}?usp=pp_url&entry.1764724213=${encodeURIComponent(name)}&entry.467828477=${encodeURIComponent(globalScore)}`;
+            window.open(finalUrl, '_blank');
+        };
+
+        init();
+    </script>
+</body>
+</html>
