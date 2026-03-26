@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading: The Not So Distant Past</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Battambang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .khmer {
+            font-family: 'Battambang', cursive;
+        }
+        /* 16:9 Aspect Ratio Container */
+        .presentation-slide {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .scrollable-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        /* Flashcard Flip Animation */
+        .perspective {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flipped {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+        /* Hide scrollbar for clean look */
+        .scrollable-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background-color: #e5e7eb;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+
+    <div class="presentation-slide">
+        <!-- Header -->
+        <header class="bg-slate-800 text-white p-6 text-center">
+            <h1 class="text-3xl font-bold">Reading: The Not So Distant Past</h1>
+            <p class="text-slate-300 font-medium">Pre-Intermediate</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex border-b bg-slate-50">
+            <button onclick="switchTab('vocabulary')" id="tab-vocabulary" class="flex-1 py-3 font-semibold text-blue-600 border-b-4 border-blue-600 transition-all">Vocabulary</button>
+            <button onclick="switchTab('flashcards')" id="tab-flashcards" class="flex-1 py-3 font-semibold text-gray-500 hover:text-blue-600 border-b-4 border-transparent transition-all">Flash Cards</button>
+            <button onclick="switchTab('practice')" id="tab-practice" class="flex-1 py-3 font-semibold text-gray-500 hover:text-blue-600 border-b-4 border-transparent transition-all">Practice Exercise</button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="scrollable-content" id="content-area">
+            
+            <!-- Vocabulary View -->
+            <div id="view-vocabulary" class="block">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-2 mb-2 font-bold text-gray-700 hidden md:grid">
+                    <div>Word (Part of Speech)</div>
+                    <div>IPA (Pronunciation)</div>
+                    <div>Khmer Translation</div>
+                </div>
+                <div id="vocab-list" class="space-y-3">
+                    <!-- JavaScript will inject vocabulary items here -->
+                </div>
+            </div>
+
+            <!-- Flashcards View -->
+            <div id="view-flashcards" class="hidden h-full flex flex-col items-center justify-center">
+                <div class="perspective w-full max-w-md h-64 mb-8">
+                    <div id="card-inner" class="flip-card-inner h-full w-full relative" onclick="this.classList.toggle('flipped')">
+                        <div class="flip-card-front bg-blue-50 border-2 border-blue-200 shadow-lg">
+                            <div>
+                                <h2 id="card-front-text" class="text-4xl font-bold text-slate-700 mb-2">Word</h2>
+                                <p id="card-front-pos" class="text-slate-500 italic"></p>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-white border-2 border-red-200 shadow-lg">
+                            <div>
+                                <p id="card-back-ipa" class="text-blue-800 text-xl font-mono mb-4">/ipa/</p>
+                                <h2 id="card-back-khmer" class="text-4xl font-bold text-red-600 khmer">ការបកប្រែ</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="prevCard()" class="px-6 py-2 bg-slate-200 hover:bg-slate-300 rounded-full font-bold transition-colors">Previous</button>
+                    <button onclick="shuffleCards()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold transition-colors">Shuffle</button>
+                    <button onclick="nextCard()" class="px-6 py-2 bg-slate-200 hover:bg-slate-300 rounded-full font-bold transition-colors">Next</button>
+                </div>
+                <p id="card-count" class="mt-4 text-gray-500">Card 1 / 24</p>
+            </div>
+
+            <!-- Practice View -->
+            <div id="view-practice" class="hidden">
+                <div class="bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500 text-sm">
+                    Fill in the blanks with the correct vocabulary word from the lesson.
+                </div>
+                <div id="quiz-container" class="space-y-8">
+                    <!-- JavaScript will inject questions here -->
+                </div>
+                <div class="mt-10 mb-6 text-center">
+                    <button onclick="checkAnswers()" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold shadow-lg transition-transform active:scale-95">Submit Answers</button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-slate-100 p-4 text-center border-t text-slate-500 text-sm">
+            © GIA School!
+        </footer>
+    </div>
+
+    <script>
+        const vocabularyData = [
+            { word: "Enemy", pos: "n", ipa: "/ˈɛnəmi/", khmer: "សត្រូវ" },
+            { word: "Capture", pos: "v", ipa: "/ˈkæptʃər/", khmer: "ចាប់យក" },
+            { word: "Virus", pos: "n", ipa: "/ˈvaɪrəs/", khmer: "វីរុស" },
+            { word: "Refugee", pos: "n", ipa: "/ˌrɛfjuˈdʒiː/", khmer: "ជនភៀសខ្លួន" },
+            { word: "Announce", pos: "v", ipa: "/əˈnaʊns/", khmer: "ប្រកាស" },
+            { word: "Execute", pos: "v", ipa: "/ˈɛksɪkjuːt/", khmer: "ប្រហារជីវិត" },
+            { word: "Protest", pos: "v/n", ipa: "/ˈproʊtɛst/", khmer: "តវ៉ា" },
+            { word: "Protestor", pos: "n", ipa: "/prəˈtɛstər/", khmer: "អ្នកតវ៉ា" },
+            { word: "Invade", pos: "v", ipa: "/ɪnˈveɪd/", khmer: "ឈ្លានពាន" },
+            { word: "Pay tax", pos: "v phr.", ipa: "/peɪ tæks/", khmer: "បង់ពន្ធ" },
+            { word: "Surprisingly", pos: "adv", ipa: "/sərˈpraɪzɪŋli/", khmer: "គួរឱ្យភ្ញាក់ផ្អើល" },
+            { word: "Certainly", pos: "adv", ipa: "/ˈsɜːrtnli/", khmer: "ប្រាកដណាស់" },
+            { word: "Rule", pos: "v", ipa: "/ruːl/", khmer: "គ្រប់គ្រង/ត្រួតត្រា" },
+            { word: "Incredibly", pos: "adv", ipa: "/ɪnˈkrɛdəbli/", khmer: "គួរឱ្យជឿជាក់" },
+            { word: "Central heating", pos: "n", ipa: "/ˈsɛntrəl ˈhiːtɪŋ/", khmer: "ប្រព័ន្ធកម្ដៅកណ្តាល" },
+            { word: "Acquaduct", pos: "n", ipa: "/ˈækwədʌkt/", khmer: "បំពង់នាំទឹក" },
+            { word: "Flushing toilet", pos: "n", ipa: "/ˈflʌʃɪŋ ˈtɔɪlət/", khmer: "បង្គន់ចុចទឹក" },
+            { word: "Sewage", pos: "n", ipa: "/ˈsuːɪdʒ/", khmer: "ទឹកស្អុយ" },
+            { word: "On the move", pos: "idm", ipa: "/ɒn ðə muːv/", khmer: "កំពុងធ្វើដំណើរ" },
+            { word: "Stall", pos: "n", ipa: "/stɔːl/", khmer: "តូបលក់ដូរ" },
+            { word: "Mince", pos: "v/n", ipa: "/mɪns/", khmer: "សាច់ចិញ្ច្រាំ" },
+            { word: "Patties", pos: "n", ipa: "/ˈpætiz/", khmer: "នំបុ័ងសាច់" },
+            { word: "Leap year", pos: "n", ipa: "/liːp jɪər/", khmer: "ឆ្នាំបង្គ្រប់" },
+            { word: "A living reminder", pos: "n phr.", ipa: "/ə ˈlɪvɪŋ rɪˈmaɪndər/", khmer: "ការរំលឹកដ៏រស់រវើក" }
+        ];
+
+        let currentCardIndex = 0;
+        let shuffledCards = [...vocabularyData];
+
+        const quizQuestions = [
+            { q: "The soldiers managed to ____ the city after a long battle.", a: "capture" },
+            { q: "A ____ is a person who has been forced to leave their country to escape war.", a: "refugee" },
+            { q: "The government will ____ the new law on the radio tomorrow.", a: "announce" },
+            { q: "Ancient Romans used an ____ to carry water from the mountains to the city.", a: "acquaduct" },
+            { q: "Many people went to the street to ____ against the high prices.", a: "protest" },
+            { q: "The computer was infected with a dangerous ____.", a: "virus" },
+            { q: "In ancient times, kings used to ____ their lands with total power.", a: "rule" },
+            { q: "It's a ____, which means February has 29 days this year.", a: "leap year" },
+            { q: "We bought some beef ____ to make burgers for the party.", a: "mince" },
+            { q: "The city's ____ system needs to be fixed to avoid bad smells.", a: "sewage" },
+            { q: "The old castle is ____ of the history of this town.", a: "a living reminder" },
+            { q: "She was ____ fast, and I couldn't keep up with her.", a: "on the move" },
+            { q: "People in this country must ____ to support public services.", a: "pay tax" },
+            { q: "The ____ was arrested for throwing a stone at the building.", a: "protestor" },
+            { q: "The story was ____ exciting, I couldn't stop reading it.", a: "incredibly" },
+            { q: "____, he finished the whole marathon even though he was sick.", a: "surprisingly" },
+            { q: "They decided to ____ the prisoner early in the morning.", a: "execute" },
+            { q: "The army plans to ____ the neighboring territory at dawn.", a: "invade" },
+            { q: "You ____ need to bring your ID if you want to enter.", a: "certainly" },
+            { q: "Modern houses usually have ____ to keep warm in winter.", a: "central heating" }
+        ];
+
+        function init() {
+            renderVocabulary();
+            renderQuiz();
+            updateCard();
+        }
+
+        function switchTab(tab) {
+            // Update tabs UI
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-blue-600');
+                btn.classList.add('text-gray-500', 'border-transparent');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('text-blue-600', 'border-blue-600');
+            document.getElementById(`tab-${tab}`).classList.remove('text-gray-500', 'border-transparent');
+
+            // Show/Hide views
+            document.getElementById('view-vocabulary').classList.add('hidden');
+            document.getElementById('view-flashcards').classList.add('hidden');
+            document.getElementById('view-practice').classList.add('hidden');
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+        }
+
+        function renderVocabulary() {
+            const container = document.getElementById('vocab-list');
+            container.innerHTML = vocabularyData.map(item => `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 p-3 bg-white hover:bg-slate-50 rounded-lg border border-slate-100 transition-colors shadow-sm">
+                    <div class="text-gray-500 font-semibold">${item.word} <span class="text-xs font-normal italic">(${item.pos})</span></div>
+                    <div class="text-blue-800 font-mono">${item.ipa}</div>
+                    <div class="text-red-600 font-bold khmer">${item.khmer}</div>
+                </div>
+            `).join('');
+        }
+
+        function shuffleCards() {
+            shuffledCards = [...vocabularyData].sort(() => Math.random() - 0.5);
+            currentCardIndex = 0;
+            document.getElementById('card-inner').classList.remove('flipped');
+            setTimeout(updateCard, 100);
+        }
+
+        function updateCard() {
+            const item = shuffledCards[currentCardIndex];
+            document.getElementById('card-front-text').innerText = item.word;
+            document.getElementById('card-front-pos').innerText = `(${item.pos})`;
+            document.getElementById('card-back-ipa').innerText = item.ipa;
+            document.getElementById('card-back-khmer').innerText = item.khmer;
+            document.getElementById('card-count').innerText = `Card ${currentCardIndex + 1} / ${shuffledCards.length}`;
+        }
+
+        function nextCard() {
+            document.getElementById('card-inner').classList.remove('flipped');
+            setTimeout(() => {
+                currentCardIndex = (currentCardIndex + 1) % shuffledCards.length;
+                updateCard();
+            }, 150);
+        }
+
+        function prevCard() {
+            document.getElementById('card-inner').classList.remove('flipped');
+            setTimeout(() => {
+                currentCardIndex = (currentCardIndex - 1 + shuffledCards.length) % shuffledCards.length;
+                updateCard();
+            }, 150);
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = quizQuestions.map((item, index) => `
+                <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                    <p class="text-lg text-slate-700 mb-3">${index + 1}. ${item.q.replace('____', `
+                        <input type="text" 
+                               id="q-${index}" 
+                               data-answer="${item.a}"
+                               placeholder="..."
+                               class="mx-1 px-2 py-1 border-b-2 border-slate-300 focus:border-blue-500 focus:outline-none w-40 transition-colors bg-blue-50/30">
+                    `)}</p>
+                    <div id="feedback-${index}" class="hidden mt-2 text-sm font-semibold"></div>
+                </div>
+            `).join('');
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            quizQuestions.forEach((item, index) => {
+                const input = document.getElementById(`q-${index}`);
+                const feedback = document.getElementById(`feedback-${index}`);
+                const userAnswer = input.value.trim().toLowerCase();
+                const correctAnswer = input.dataset.answer.toLowerCase();
+
+                feedback.classList.remove('hidden');
+                if (userAnswer === correctAnswer) {
+                    score++;
+                    input.classList.add('text-green-600', 'border-green-500');
+                    input.classList.remove('text-red-600', 'border-red-500');
+                    feedback.innerText = "✓ Correct!";
+                    feedback.className = "mt-2 text-sm font-semibold text-green-600";
+                } else {
+                    input.classList.add('text-red-600', 'border-red-500');
+                    input.classList.remove('text-green-600', 'border-green-500');
+                    feedback.innerText = `✗ Incorrect. Correct: ${item.a}`;
+                    feedback.className = "mt-2 text-sm font-semibold text-red-500";
+                }
+            });
+
+            // Show final result message
+            const finalScore = Math.round((score / quizQuestions.length) * 100);
+            const container = document.getElementById('quiz-container');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = "p-6 bg-slate-800 text-white rounded-xl text-center animate-bounce mt-8";
+            resultDiv.innerHTML = `
+                <h3 class="text-2xl font-bold mb-2">Quiz Finished!</h3>
+                <p class="text-xl">Your Score: ${score} / ${quizQuestions.length} (${finalScore}%)</p>
+            `;
+            
+            // Remove previous results if any
+            const oldResult = document.getElementById('final-score-box');
+            if (oldResult) oldResult.remove();
+            
+            resultDiv.id = "final-score-box";
+            container.appendChild(resultDiv);
+            
+            // Scroll to bottom
+            document.querySelector('.scrollable-content').scrollTo({
+                top: document.querySelector('.scrollable-content').scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
